@@ -3,6 +3,34 @@ import wikipedia as wiki
 import argparse
 
 
+def print_list_of_content_blocks(content_dict: dict):
+    '''
+    pass
+    '''
+    content_dict_keys = list(content_dict.keys())
+    if len(content_dict_keys) == 0:
+        print("Статья пустая")
+    else:
+        print("Содержание статьи: \n")
+        for i, header in enumerate(content_dict_keys):
+            print(f"{i+1} -- {header}")
+
+
+def get_content_blocks_dict(article: str):
+    '''
+    pass
+    '''
+    article_split = article.split("== ")
+    content_dict = {}
+    content_dict["Аннотация"] = article_split[0]
+    for content in article_split[1:]:
+        content_split = content.split(" ==")
+        title_of_content_block = content_split[0]
+        content_dict[title_of_content_block] = content_split[1]
+    return content_dict
+
+    
+
 def get_content_of_article(name: str) -> str:
     '''
     Возвращает полный текст статьи 
@@ -94,9 +122,10 @@ def main():
     max_results_number = arguments.number 
     
     set_language(language)
-    results = get_list_of_results(request, max_results_number)
+    #results = get_list_of_results(request, max_results_number)
     
     while True:
+        results = get_list_of_results(request, max_results_number)
         number_of_article = int(input("\nВведите номер интересующей Вас статьи: "))
         if number_of_article == 0 or number_of_article > len(results) + 1:
             print(f"Статьи с номером {number_of_article} нет в результатах поиска. Повторите попытку")
@@ -104,13 +133,39 @@ def main():
         else:
             name_of_article = results[number_of_article - 1]
             
-            summary_or_full = input("\nХотите вывести аннотацию (summary) или полный текст статьи (content)? (S/C): ")
+            summary_or_full = input("\nХотите вывести аннотацию (summary), содержание (content) или полный текст статьи (full)? (S/C/F): ")
             summary_or_full = summary_or_full.lower()
             if summary_or_full == "s":
                 summary = get_summary_of_article(name_of_article)
                 print("\n")
                 print(summary)
+                
             elif summary_or_full == "c":
+                content = get_content_of_article(name_of_article)
+                content_dict = get_content_blocks_dict(content)
+                content_dict_keys = list(content_dict.keys())
+                
+                while True:
+                    print_list_of_content_blocks(content_dict)
+                    number_of_block = int(input("\nВведите номер интересующего блока статьи: "))
+                    if number_of_block == 0 or number_of_block > len(content_dict_keys) + 1:
+                        print(f"Блока с номером {number_of_block} нет для данной статьи. Повторите попытку")
+                        continue
+                    else:
+                        print("\n")
+                        print(content_dict[content_dict_keys[number_of_block - 1]].strip("="))
+                        
+                        stay_on_this_artcile = input("Хотите остаться на этой статье или перейти к следующей? (Y/N): ")
+                        choice = stay_on_this_artcile.lower()
+                        
+                        if choice == "y":
+                            continue
+                        elif choice == "n":
+                            break
+                        else:
+                             raise Exception("f{choice} doesn't exist in [Y, N]")
+                        
+            elif summary_or_full == "f":
                 content = get_content_of_article(name_of_article)
                 print("\n")
                 print(content)
